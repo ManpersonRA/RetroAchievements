@@ -210,16 +210,155 @@ Notes about coinless run
 
 
 */
+level_image=word_be(0x00315b9c)
+level_status=byte(0x00354ee7)
+
+file_selected=byte(0x00c7f7c6)
+
+level_data_start = 0x00c7fecf
+
+//given a level_image, retrieve the address that the data is stored in for the current file
+//example: level 0x221
+//level = 0x221%0x100 = 0x21
+//world = 0x221/0x100 = 0x02
+//byte = world * 0x2a*4 + level*4 + 0x00c7fecf = 2 * 0x2a + 21 0x00c7fecf = 0x00c800a3 
+// (*4 since each level data section is 4 bytes)
+function get_level_data(level_img){
+    level=level_img%0x100
+    world=level_img/0x100
+    return world*0x2a*4 + level*4 + level_data_start + 0x980*file_selected
+}
 
 
+// * * * * * * * * * * * * * * * STANDARD PROGRESSION * * * * * * * * * * * * * * * \\
+
+// Levels that you are required to beat (that should have achievements): 
+// 3-Airship, 7-Airship, Bowser's Castle, Bowser's Keep (w)
+// Levels that I want an achievement for:
+// 1-Airship, 2-Airship, 4-Airship, 5-Airship, 6-Airship, 9-10, 
+// maybe the final level in the lettered worlds, idk
+
+// format: key : [title, description, points, type_flag]
+Boss_Achievements = {
+    0x25: ["Iggy Is Die", "Defeat Iggy Koopa in 1-Airship: Derelict Airship", 5, ""]
+}
+// If the level ends in a flag, must use this dict instead
+Level_Achievements = {
+    0x809: ["Newer Super Special World", "Complete World 9-10, Black Cappers, and complete every exit in the game!", 25, ""]
+}
+
+for key in Boss_Achievements{
+    achievement(
+        title=Boss_Achievements[key][0],
+        description=Boss_Achievements[key][1],
+        points=Boss_Achievements[key][2],
+        type=Boss_Achievements[key][3],
+        trigger= level_image==key && level_status==0x05 && prev(level_status)!=level_status
+    
+    )
+}
+
+for key in Level_Achievements{
+    achievement(
+        title=Level_Achievements[key][0],
+        description=Level_Achievements[key][1],
+        points=Level_Achievements[key][2],
+        type=Level_Achievements[key][3],
+        trigger= level_image==key && level_status==0x02 && prev(level_status)==0x01
+    
+    )
+}
 
 
+// * * * * * * * * * * * * * * * STAR COINS * * * * * * * * * * * * * * * \\
 
+// Want these to be separated by world, simple enough, just have to deal with some addressing
+// format: key: [[title, description, points], [level1, level2, ...]]
 
+Star_Coins = {
+    0x01: [["W1 Star Coins", "Collect all Star Coins in Yoshi's Islans", 5], [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25]]
+}
+
+function Star_Coin_Logic(Star_Coin){
+    return bit0(get_level_data(Star_Coin)) +
+            bit1(get_level_data(Star_Coin)) +
+            bit2(get_level_data(Star_Coin)) 
+}
+
+function Prev_Star_Coin_Logic(Star_Coin){
+    return prev(bit0(get_level_data(Star_Coin))) +
+            prev(bit1(get_level_data(Star_Coin))) +
+            prev(bit2(get_level_data(Star_Coin))) 
+}
+
+for key in Star_Coins{
+    achievement(
+        title=Star_Coins[key][0][0],
+        description=Star_Coins[key][0][1],
+        points=Star_Coins[key][0][2],
+        trigger = measured(
+            sum_of(
+                Star_Coins[key][1],
+                Star_Coin_Logic
+            ) == length(Star_Coins[key][1])*3
+        ) &&         
+        sum_of(
+            Star_Coins[key][1],
+            Prev_Star_Coin_Logic
+        ) == length(Star_Coins[key][1])*3-1
+         
+    )
+}
+
+// * * * * * * * * * * * * * * * EXITS * * * * * * * * * * * * * * * \\
+
+// Incredibly similar to the above, except there are also secret exits to worry about
+// format: key: [[title, description, points], [normalexit1, normalexit2, ...], [secretexit1, secretexit2, ...]]
+
+function Get_Exit(lvl_img){
+    return bit4(get_level_data(lvl_img))
+}
+function Prev_Get_Exit(lvl_img){
+    return prev(bit4(get_level_data(lvl_img)))
+}
+function Get_Secret_Exit(lvl_img){
+    return bit5(get_level_data(lvl_img))
+}
+function Prev_Get_Secret_Exit(lvl_img){
+    return prev(bit5(get_level_data(lvl_img)))
+}
+
+exits = {
+    0x01: [["W1 Clear", "Get all the exits in Yoshi's Island", 5], [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25], [0x05, 0x07]]
+}
+
+for world in exits{
+    achievement(
+        title= exits[world][0][0],
+        description = exits[world][0][1],
+        points = exits[world][0][2],
+        trigger = 
+            measured(
+                sum_of(
+                exits[world][1], Get_Exit 
+                ) +
+                sum_of(
+                    exits[world][2], Get_Secret_Exit
+                ) == length(exits[world][1])+length(exits[world][2])
+            ) &&
+            sum_of(
+                exits[world][1], Prev_Get_Exit 
+                ) +
+            sum_of(
+                exits[world][2], Prev_Get_Secret_Exit
+            ) == length(exits[world][1])+length(exits[world][2])-1
+    )
+}
 rich_presence_display("Stage {0} | Lives {1} | 💀 {2} | {3}",
     rich_presence_value("stage", byte(0xC7FE65)),
     rich_presence_value("lives", word(0x354E93)),
     rich_presence_value("death", tally(0, prev(byte(0x354E93)) > byte(0x354E93), always_false())),
     rich_presence_value("score", dword_be(0x1547D48), format="SCORE")
 )
+
 
