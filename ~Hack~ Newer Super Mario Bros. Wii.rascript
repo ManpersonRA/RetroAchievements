@@ -217,6 +217,58 @@ file_selected=byte(0x00c7f7c6)
 
 level_data_start = 0x00c7fecf
 
+
+title_screen = byte(0x00315b9b)
+function not_on_title_screen() => title_screen == 0x00
+
+p1_lives = byte(0x00354e93)
+p2_lives = byte(0x00354e94)
+p3_lives = byte(0x00354e95)
+p4_lives = byte(0x00354e96)
+
+coins = byte(0x00354ea3)
+
+overworld_map = byte(0x00c7fe63) // File 1
+
+overworld_position = byte(0x00c7fe65) // File 1
+
+class item_reserve{ // File 1
+    m = byte(0x00c7fe69 + 0x980*file_selected)
+    ff = byte(0x00c7fe6a + 0x980*file_selected)
+    pr = byte(0x00c7fe6b + 0x980*file_selected)
+    ic = byte(0x00c7fe6c + 0x980*file_selected)
+    pe = byte(0x00c7fe6d + 0x980*file_selected)
+    mm = byte(0x00c7fe6e + 0x980*file_selected)
+    s = byte(0x00c7fe6f + 0x980*file_selected)
+    h = byte(0x00c7fe70 + 0x980*file_selected)
+    
+    function change(num){
+        return m+ff+pr+ic+pe+mm+s+h - prev(m)+prev(ff)+prev(pr)+prev(ic)+prev(pe)+prev(mm)+prev(s)+prev(h) == num
+    }
+}
+
+death_start = 0x00c80624 // File 1
+
+
+hard_mode = byte(0x00e5740c)
+function in_hard_mode() => hard_mode==1
+
+debug_mode = byte(0x00e69fc8) //doesn't affect gameplay in a meaningful way
+function in_debug_mode() => debug_mode==1 
+
+berries = byte(0x15319c3)
+
+timer = word_be(0x01547d42)
+score = dword_be(0x01547d48)
+
+powerup = byte(0x0154d427)
+
+mario_x = dword_be(0x0154d470)
+mario_y = dword_be(0x0154d474)
+
+on_ground = byte(0x0154d4ab)
+parabeetles = byte(0x015e67ff)
+
 //given a level_image, retrieve the address that the data is stored in for the current file
 //example: level 0x221
 //level = 0x221%0x100 = 0x21
@@ -241,12 +293,18 @@ function get_level_data(level_img){
 // format: key : [title, description, points, type_flag]
 Boss_Achievements = {
     0x25: ["Iggy Is Die", "Defeat Iggy Koopa in 1-Airship: Derelict Airship", 5, ""],
-    0x125: ["What boss is this 2", "Defeat  in 2-Airship: Sandship", 5, ""]
-    
+    0x125: ["What boss is this 2", "Defeat  in 2-Airship: Sandship", 5, ""],
+    0x225: ["What boss is this 3", "Defeat  in 3-Airship: Capshroom Airship", 5, ""],
+    0x325: ["What boss is this 4", "Defeat  in 4-Airship: Nutscrew Airship", 5, ""],
+    0x425: ["What boss is this 5", "Defeat  in 5-Airship: Snowdrift Airship", 5, ""],
+    0x525: ["What boss is this 6", "Defeat  in 6-Airship: Shipwreck Galleoun", 5, ""],
+    0x625: ["What boss is this 7", "Defeat  in 7-Airship: Spaceship Koopa", 10, ""],
+    0x717: ["What boss is this 8-Keep", "Defeat  in 8-Castle: Bowser's Keep", 10, ""],
+    0x718: ["What boss is this 8-Castle", "Defeat  in 8-Castle: Bowser's Castle", 10, ""],
 }
 // If the level ends in a flag, must use this dict instead
 Level_Achievements = {
-    0x809: ["Newer Super Special World", "Complete World 9-10, Black Cappers, and complete every exit in the game!", 25, ""]
+    0x809: ["Newer Super Special World Wii", "Complete World 9-10: Black Cappers, and complete every exit in the game!", 25, ""]
 }
 
 for key in Boss_Achievements{
@@ -278,7 +336,34 @@ for key in Level_Achievements{
 // format: key: [[title, description, points], [level1, level2, ...]]
 // 15 total 5, 5, 5, 10, 10, 10, 10, 25, 25 [every star coin], 3, 3, 3, 3, 3
 Star_Coins = {
-    0x01: [["W1 Star Coins", "Collect all Star Coins in Yoshi's Islans", 5], [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25]]
+    0x01: [["W-1 Star Coins", "Collect all Star Coins in Yoshi's Island", 5], 
+            [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25]],
+    0x02: [["W-2 Star Coins", "Collect all Star Coins in Rubble Ruins and Soggy Sewers", 5], 
+            [0x100, 0x101, 0x102, 0x103, 0x104, 0x105, 0x106, 0x107, 0x108, 0x109, 0x10e, 0x119, 0x125]],
+    0x03: [["W-3 Star Coins", "Collect all Star Coins in Mushroom Peaks", 5], 
+            [0x200, 0x201, 0x202, 0x203, 0x204, 0x205, 0x206, 0x20e, 0x218, 0x225]],
+    0x04: [["W-4 Star Coins", "Collect all Star Coins in Sakura Village", 10], 
+            [0x300, 0x301, 0x302, 0x303, 0x304, 0x305, 0x306, 0x30e, 0x318, 0x325]],
+    0x05: [["W-5 Star Coins", "Collect all Star Coins in Freezeflame Glavier and Freezeflame Volcano", 10], 
+            [0x400, 0x401, 0x402, 0x403, 0x404, 0x405, 0x406, 0x407, 0x408, 0x409, 0x40e, 0x418, 0x425]],
+    0x06: [["W-6 Star Coins", "Collect all Star Coins in Pumpkin Boneyard", 10], 
+            [0x500, 0x501, 0x502, 0x503, 0x504, 0x505, 0x506, 0x507, 0x508, 0x50e, 0x518, 0x525]],
+    0x07: [["W-7 Star Coins", "Collect all Star Coins in Sky Mountain and Starry Skies", 10], 
+            [0x600, 0x601, 0x602, 0x603, 0x604, 0x605, 0x606, 0x607, 0x60e, 0x618, 0x625]],
+    0x08: [["W-8 Star Coins", "Collect all Star Coins in Koopa Planet and Koopa Core", 25], 
+            [0x700, 0x701, 0x702, 0x702, 0x703, 0x704, 0x705, 0x706, 0x707, 0x708, 0x709, 0x70e, 0x70f, 0x717, 0x718]],
+    0x09: [["W-9 Star Coins", "Collect all Star Coins in Bonus Land", 25], 
+            [0x800, 0x801, 0x802, 0x803, 0x804, 0x805, 0x806, 0x807, 0x808, 0x809]],
+    0x0a: [["W-A Star Coins", "Collect all Star Coins in Goldwood Forest", 3], 
+            [0x900, 0x901, 0x902, 0x903]],
+    0x0b: [["W-B Star Coins", "Collect all Star Coins in Mighty Meadow", 3], 
+            [0x905, 0x906, 0x907, 0x908, 0x909]],
+    0x0c: [["W-C Star Coins", "Collect all Star Coins in Sky City", 3], 
+            [0x912, 0x915, 0x916, 0x917, 0x918]],
+    0x0d: [["W-D Star Coins", "Collect all Star Coins in Crystal Caves", 3], 
+            [0x90a, 0x90b, 0x90c, 0x90d, 0x90d]],
+    0x0e: [["W-E Star Coins", "Collect all Star Coins in Bombard Cliffs", 3], 
+            [0x90f, 0x910, 0x911]],
 }
 
 function Star_Coin_Logic(Star_Coin){
@@ -332,7 +417,8 @@ function Prev_Get_Secret_Exit(lvl_img){
 }
 
 exits = {
-    0x01: [["W1 Clear", "Get all the exits in Yoshi's Island", 5], [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25], [0x05, 0x07]]
+    0x01: [["W1 Clear", "Get all the exits in Yoshi's Island", 5], 
+    [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25], [0x05, 0x07]],
 }
 
 for world in exits{
