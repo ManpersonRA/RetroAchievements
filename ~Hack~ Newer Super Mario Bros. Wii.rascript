@@ -240,7 +240,9 @@ function get_level_data(level_img){
 
 // format: key : [title, description, points, type_flag]
 Boss_Achievements = {
-    0x25: ["Iggy Is Die", "Defeat Iggy Koopa in 1-Airship: Derelict Airship", 5, ""]
+    0x25: ["Iggy Is Die", "Defeat Iggy Koopa in 1-Airship: Derelict Airship", 5, ""],
+    0x125: ["What boss is this 2", "Defeat  in 2-Airship: Sandship", 5, ""]
+    
 }
 // If the level ends in a flag, must use this dict instead
 Level_Achievements = {
@@ -274,7 +276,7 @@ for key in Level_Achievements{
 
 // Want these to be separated by world, simple enough, just have to deal with some addressing
 // format: key: [[title, description, points], [level1, level2, ...]]
-
+// 15 total 5, 5, 5, 10, 10, 10, 10, 25, 25 [every star coin], 3, 3, 3, 3, 3
 Star_Coins = {
     0x01: [["W1 Star Coins", "Collect all Star Coins in Yoshi's Islans", 5], [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25]]
 }
@@ -314,7 +316,8 @@ for key in Star_Coins{
 
 // Incredibly similar to the above, except there are also secret exits to worry about
 // format: key: [[title, description, points], [normalexit1, normalexit2, ...], [secretexit1, secretexit2, ...]]
-
+// Separated by worlds, W9 does not get one
+// 1, 2, 3, 4, 5, 6, 7, 8, A, B, C, D, E = 13 total
 function Get_Exit(lvl_img){
     return bit4(get_level_data(lvl_img))
 }
@@ -354,6 +357,93 @@ for world in exits{
             ) == length(exits[world][1])+length(exits[world][2])-1
     )
 }
+
+
+// * * * * * * * * * * * * * * * CHALLENGES * * * * * * * * * * * * * * * \\
+
+/* MISSING CODE NOTES:
+    Getting all 4 items in a Music House {Can possibly be circumvented by performing a delta on the item reserves}
+    Mario Actions
+        Sliding as a penguin
+        Using propeller spin {powerup and item}
+        Jumping (for minimum jumps challenges)
+    sublevel screen (i.e., identifier between main part of level and bonus screen thru pipe that contains 3 1-ups)
+    Starting a level from a checkpoint
+    Some sort of flag signifying a 1-up mushroom has been collected (excludes combo 1-ups and coin 1-ups)
+        - Would prefer to not have this based on a player's 1-up count since there's many ways to trigger that, 
+        + when you have 99 the counter doesn't go up anymore
+    Parabeetles spawn a 1-up
+    In Credits flag
+    
+//Hard mode achievements
+// Levels for this have not been picked
+// Coding difficulty: Easy
+
+//Debug mode
+// Just turn it on
+// Coding difficulty: Easy
+
+//Challenge Houses
+// 2 achievements, complete any challenge house, complete all 8 challenge houses
+// Coding difficulty: Easy
+// Level addresses: 0x921, 0x720, 0x620, 0x520, 0x320, 0x220, 0x120, 0x20
+
+//Music Houses
+// [missable]
+// 1 achievement per music houses, 7 total
+// 5 points each
+// Coding difficulty: Medium {Missing Code Notes}
+
+//Coins
+// Collect x coins in y level
+// variable amount of points
+// 8-Train, 5-Tower, 2-5 (min-spins) {}
+// Coding difficulty: Medium/Hard {may rely on other address, like credits scene signifier}
+
+//Hammer Mario
+// Coding difficulty: easy
+
+//Collect specific 1-ups
+// 4-4, 6-Castle, D-2
+// Coding difficulty: Hard (may have to rely on tracking specific 1-ups.)
+
+//99 lives
+// Coding difficulty: easy
+
+//Low score
+// C-4 (no checkpoint or propeller), E-3
+// Coding difficulty: easy
+
+//Damageless
+// A-Tower, B-Tower, C-Tower etc, W5 boss, Final bowser and maybe mid-W8 fight
+// Coding difficulty: easy
+
+//Red Rings
+// 5-4 is for some reason the only one I have listed
+// Coding difficulty: TBD
+
+//All Berries
+// A-2
+// Coding difficulty: easy
+
+//Speedrun
+// 2-9, 6-Tower boss, maybe something in W9 (Full world speedrun?)
+// Coding difficulty: Medium (Hard for W9 speedrun)
+
+//Other
+// 2-A fly over the level (Medium Difficulty)
+// 1-up combo in E-1 (TBD)
+// 5-1 penguin slide (Hard)
+// 7-1 without blue switch (Easy)
+// 7-? min jumps (Hard)
+// 8-2 all star coins no propeller or checkpoint (Medium)
+// B-1 Mighty Meadow as Mini Mario [m] (Easy)
+// Complete challenge house as Mini Mario [1p] [m] (Easy)
+// C-Tower super hidden room [Medium]
+// Spawning x lives in the parabeetle level (don't remember which one that is) [Hard]
+
+*/
+// * * * * * * * * * * * * * * * RICH PRESENCE * * * * * * * * * * * * * * * \\
 rich_presence_display("Stage {0} | Lives {1} | 💀 {2} | {3}",
     rich_presence_value("stage", byte(0xC7FE65)),
     rich_presence_value("lives", word(0x354E93)),
