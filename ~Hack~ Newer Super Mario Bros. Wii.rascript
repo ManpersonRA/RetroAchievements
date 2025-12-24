@@ -232,6 +232,8 @@ overworld_map = byte(0x00c7fe63) // File 1
 
 overworld_position = byte(0x00c7fe65) // File 1
 
+function in_overworld() => byte(0x003e29b7)==0x01
+
 class item_reserve{ // File 1
     m = byte(0x00c7fe69 + 0x980*file_selected)
     ff = byte(0x00c7fe6a + 0x980*file_selected)
@@ -257,6 +259,8 @@ debug_mode = byte(0x00e69fc8) //doesn't affect gameplay in a meaningful way
 function in_debug_mode() => debug_mode==1 
 
 berries = byte(0x15319c3)
+
+music_house_items = byte(0x0154219f)
 
 timer = word_be(0x01547d42)
 score = dword_be(0x01547d48)
@@ -344,7 +348,7 @@ Star_Coins = {
             [0x200, 0x201, 0x202, 0x203, 0x204, 0x205, 0x206, 0x20e, 0x218, 0x225]],
     0x04: [["W-4 Star Coins", "Collect all Star Coins in Sakura Village", 10], 
             [0x300, 0x301, 0x302, 0x303, 0x304, 0x305, 0x306, 0x30e, 0x318, 0x325]],
-    0x05: [["W-5 Star Coins", "Collect all Star Coins in Freezeflame Glavier and Freezeflame Volcano", 10], 
+    0x05: [["W-5 Star Coins", "Collect all Star Coins in Freezeflame Glacier and Freezeflame Volcano", 10], 
             [0x400, 0x401, 0x402, 0x403, 0x404, 0x405, 0x406, 0x407, 0x408, 0x409, 0x40e, 0x418, 0x425]],
     0x06: [["W-6 Star Coins", "Collect all Star Coins in Pumpkin Boneyard", 10], 
             [0x500, 0x501, 0x502, 0x503, 0x504, 0x505, 0x506, 0x507, 0x508, 0x50e, 0x518, 0x525]],
@@ -354,15 +358,15 @@ Star_Coins = {
             [0x700, 0x701, 0x702, 0x702, 0x703, 0x704, 0x705, 0x706, 0x707, 0x708, 0x709, 0x70e, 0x70f, 0x717, 0x718]],
     0x09: [["W-9 Star Coins", "Collect all Star Coins in Bonus Land", 25], 
             [0x800, 0x801, 0x802, 0x803, 0x804, 0x805, 0x806, 0x807, 0x808, 0x809]],
-    0x0a: [["W-A Star Coins", "Collect all Star Coins in Goldwood Forest", 3], 
+    0x0a: [["W-A Star Coins", "Collect all Star Coins in Goldwood Forest", 5], 
             [0x900, 0x901, 0x902, 0x903]],
-    0x0b: [["W-B Star Coins", "Collect all Star Coins in Mighty Meadow", 3], 
+    0x0b: [["W-B Star Coins", "Collect all Star Coins in Mighty Meadow", 5], 
             [0x905, 0x906, 0x907, 0x908, 0x909]],
-    0x0c: [["W-C Star Coins", "Collect all Star Coins in Sky City", 3], 
+    0x0c: [["W-C Star Coins", "Collect all Star Coins in Sky City", 5], 
             [0x912, 0x915, 0x916, 0x917, 0x918]],
-    0x0d: [["W-D Star Coins", "Collect all Star Coins in Crystal Caves", 3], 
+    0x0d: [["W-D Star Coins", "Collect all Star Coins in Crystal Caves", 5], 
             [0x90a, 0x90b, 0x90c, 0x90d, 0x90d]],
-    0x0e: [["W-E Star Coins", "Collect all Star Coins in Bombard Cliffs", 3], 
+    0x0e: [["W-E Star Coins", "Collect all Star Coins in Bombard Cliffs", 5], 
             [0x90f, 0x910, 0x911]],
 }
 
@@ -419,6 +423,30 @@ function Prev_Get_Secret_Exit(lvl_img){
 exits = {
     0x01: [["W1 Clear", "Get all the exits in Yoshi's Island", 5], 
     [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25], [0x05, 0x07]],
+    0x02: [["W-2 Clear", "Get all the exits in Rubble Ruins and Soggy Sewers", 5], 
+    [0x100, 0x101, 0x102, 0x103, 0x104, 0x105, 0x106, 0x107, 0x108, 0x109, 0x10e, 0x119, 0x125], [0x104, 0x108]],
+    0x03: [["W-3 Clear", "Get all the exits in Mushroom Peaks", 5], 
+    [0x200, 0x201, 0x202, 0x203, 0x204, 0x205, 0x206, 0x20e, 0x218, 0x225], [0x201]],
+    0x04: [["W-4 Clear", "Get all the exits in Sakura Village", 5], 
+    [0x300, 0x301, 0x302, 0x303, 0x304, 0x305, 0x306, 0x30e, 0x318, 0x325], [0x303, 0x305]],
+    0x05: [["W-5 Clear", "Get all the exits in Freezeflame Glacier and Freezeflame Volcano", 5], 
+    [0x400, 0x401, 0x402, 0x403, 0x404, 0x405, 0x406, 0x407, 0x408, 0x409, 0x40e, 0x418, 0x425], [0x408, 0x404]],
+    0x06: [["W-6 Clear", "Get all the exits in Pumpkin Boneyard", 5], 
+    [0x500, 0x501, 0x502, 0x503, 0x504, 0x505, 0x506, 0x507, 0x508, 0x50e, 0x518, 0x525], [0x505, 0x502]],
+    0x07: [["W-7 Clear", "Get all the exits in Sky Mountain and Starry Skies", 5], 
+    [0x600, 0x601, 0x602, 0x603, 0x604, 0x605, 0x606, 0x607, 0x60e, 0x618, 0x625], [0x600, 0x604]],
+    0x08: [["W-8 Clear", "Get all the exits in Koopa Planet and Koopa Core", 10], // This one will need testing
+    [0x700, 0x701, 0x702, 0x702, 0x703, 0x704, 0x705, 0x706, 0x707, 0x708, 0x709, 0x70e, 0x70f, 0x717, 0x718], []],
+    0x0a: [["W-A Clear", "Get all the exits in Goldwood Forest", 3], 
+    [0x900, 0x901, 0x902, 0x903, 0x904], [0x901, 0x903]],
+    0x0b: [["W-B Clear", "Get all the exits in Mighty Meadow", 3], 
+    [0x905, 0x906, 0x907, 0x908, 0x909], [0x906]],
+    0x0c: [["W-C Clear", "Get all the exits in Sky City", 3], 
+    [0x912, 0x915, 0x916, 0x917, 0x918], []],
+    0x0d: [["W-D Clear", "Get all the exits in Crystal Caves", 3], 
+    [0x90a, 0x90b, 0x90c, 0x90d, 0x90e], [0x90b]],
+    0x0e: [["W-E Clear", "Get all the exits in Bombard Cliffs", 3], 
+    [0x90f, 0x910, 0x911], []],
 }
 
 for world in exits{
@@ -448,7 +476,7 @@ for world in exits{
 // * * * * * * * * * * * * * * * CHALLENGES * * * * * * * * * * * * * * * \\
 
 /* MISSING CODE NOTES:
-    Getting all 4 items in a Music House {Can possibly be circumvented by performing a delta on the item reserves}
+
     Mario Actions
         Sliding as a penguin
         Using propeller spin {powerup and item}
@@ -460,25 +488,130 @@ for world in exits{
         + when you have 99 the counter doesn't go up anymore
     Parabeetles spawn a 1-up
     In Credits flag
-    
+    1 Player flag
+*/
+
+achievement(
+    title="Time to Kill People With a Hammers",
+    description="Collect a Hammer powerup",
+    points=1,
+    trigger = not_on_title_screen() && prev(powerup)!=0x07 && powerup==0x07
+)
+
+
+// ------------------------------------------------ Unfinished challenge groups below this line ------------------------------------------------ \\
+// Look for comments with "Task" on them, will explain exactly what is needed 
+// before the challenge achievements can be considered finished (excluding badges)
+
+
+
 //Hard mode achievements
-// Levels for this have not been picked
-// Coding difficulty: Easy
+// Task: 10 levels for hard mode achievements, put the level images in the below array
+// Task 2: Find address that shows a player did not respawn from a checkpoint, 
+    // edit respawned_from_checkpoint and move it up to code note section
+
+// NOTE: If a boss level is chosen, different logic will be needed since the end of level state is different
+
+function respawned_from_checkpoint() => always_false()
+
+Hard_Mode = [
+    ["Example Hard Mode Achievement", "Complete level 0x01 in Hard Mode without respawning from a checkpoint", 10, 0x01]
+]
+
+for i in Hard_Mode{
+    achievement(
+        title=i[0],
+        description=i[1],
+        points=i[2],
+        trigger=hard_mode==0x01 && level_image==i[3] && 
+                level_status==0x02 && prev(level_status)==0x01 &&
+                !respawned_from_checkpoint()
+        
+    )
+}
+
 
 //Debug mode
 // Just turn it on
 // Coding difficulty: Easy
 
 //Challenge Houses
-// 2 achievements, complete any challenge house, complete all 8 challenge houses
-// Coding difficulty: Easy
-// Level addresses: 0x921, 0x720, 0x620, 0x520, 0x320, 0x220, 0x120, 0x20
+//Task: (Optional) Find addresses to make a better trigger spot for achievement 1
+//Task 2: Find an address for 1 player mode, fill in function one_player()
+
+ch_houses = [0x921, 0x720, 0x620, 0x520, 0x320, 0x220, 0x120, 0x20]
+
+// Completing 1 challenge house
+function ch_helper(lvl_img) => Get_Exit(lvl_img)==1 && Prev_Get_Exit(lvl_img)==0
+
+//Note: I really want this to trigger when you collect the items in the chest, but I am missing the code notes for it.
+// Right now it triggers when you go back to overworld which is lame
+achievement(
+    title= "Collectathon",
+    description="Complete any Challenge House by collecting all the stars",
+    points=2,
+    trigger=any_of(
+        ch_houses, ch_helper
+    ) && !in_overworld()
+)
+
+// Complete all challenge houses (Complete)
+achievement(
+    title="Super Star Mario",
+    description="Complete all of the Challenge Houses",
+    points=10,
+    trigger=
+        measured(
+            sum_of(
+            ch_houses, Get_Exit 
+            ) == 8
+        ) &&
+        sum_of(
+            ch_houses, Prev_Get_Exit 
+            ) == 7
+        && !in_overworld()
+)
+
+
+// Complete a challenge house as Mini Mario
+// Need: 1 Player Mode flag
+
+//Fill in this function with the required logic
+function one_player() => always_true()
+
+achievement(
+    title= "This House Could Use Some More Challenge",
+    description="Complete any Challenge House with a Mini Mushroom while in 1 Player Mode",
+    points=10,
+    trigger=any_of(
+        ch_houses, ch_helper
+    ) && !in_overworld() && powerup == 0x03 && one_player()
+)
+
+
 
 //Music Houses
-// [missable]
-// 1 achievement per music houses, 7 total
-// 5 points each
-// Coding difficulty: Medium {Missing Code Notes}
+// Task: Better titles
+
+// NOTE: These titles should be changed to match the tune that is being played
+music_houses = [
+    ["Desert Music House", "Collect all four items in Desert Music House", 5, 0x121],
+    ["Mushroom Music House", "Collect all four items in Mushroom Music House", 5, 0x221],
+    ["Village Music House", "Collect all four items in Village Music House", 5, 0x321],
+    ["Frosty Music House", "Collect all four items in Frosty Music House", 5, 0x421],
+    ["Goldwood Music House", "Collect all four items in Goldwood Music House", 5, 0x924],
+    ["Minimega Music House", "Collect all four items in Minimega Music House", 5, 0x922],
+    ["Crystal Music House", "Collect all four items in Crystal Music House", 5, 0x923],
+]
+
+for i in music_houses{
+    achievement(
+        title=i[0],
+        description=i[1],
+        points=i[2],
+        trigger= !in_overworld() && level_image==i[3] && music_house_items==4 && prev(music_house_items==3)
+    )
+}
 
 //Coins
 // Collect x coins in y level
@@ -487,7 +620,13 @@ for world in exits{
 // Coding difficulty: Medium/Hard {may rely on other address, like credits scene signifier}
 
 //Hammer Mario
-// Coding difficulty: easy
+achievement(
+    title="Time to Kill People With a Hammers",
+    description="Collect a Hammer powerup",
+    points=1,
+    trigger = not_on_title_screen() && prev(powerup)!=0x07 && powerup==0x07
+)
+
 
 //Collect specific 1-ups
 // 4-4, 6-Castle, D-2
@@ -528,7 +667,10 @@ for world in exits{
 // C-Tower super hidden room [Medium]
 // Spawning x lives in the parabeetle level (don't remember which one that is) [Hard]
 
-*/
+
+
+
+
 // * * * * * * * * * * * * * * * RICH PRESENCE * * * * * * * * * * * * * * * \\
 rich_presence_display("Stage {0} | Lives {1} | 💀 {2} | {3}",
     rich_presence_value("stage", byte(0xC7FE65)),
