@@ -130,7 +130,7 @@ level_images = {
     0x906: "B-2 Pintsized Plains",
     0x907: "B-3 Troopashell Track",
     0x908: "B-4 Cheepcheep Creek",
-    0x909: "B-Fortress: Formmidable Fortress",
+    0x909: "B-Fortress: Formidable Fortress",
     0x90a: "D-1 Swooper Cellar",
     0x90b:"D-2 Toxic Wigglershaft",
     0x90c: "D-3 Spine Springs",
@@ -210,8 +210,18 @@ Notes about coinless run
 
 
 */
+
+num_players=byte(0x003a3804)
 level_image=word_be(0x00315b9c)
 level_status=byte(0x00354ee7)
+
+function finished_level_with_flag(lvl_img){
+    return level_image==lvl_img && level_status==0x02 && prev(level_status)==0x01
+}
+
+function finished_level_with_boss(lvl_img){
+    return level_image==lvl_img && level_status==0x05 && prev(level_status)!=level_status
+}
 
 file_selected=byte(0x00c7f7c6)
 
@@ -258,17 +268,17 @@ function in_hard_mode() => hard_mode==1
 debug_mode = byte(0x00e69fc8) //doesn't affect gameplay in a meaningful way
 function in_debug_mode() => debug_mode==1 
 
-berries = byte(0x15319c3)
+//only works for 1p
+yoshi_player_pointer=dword_be(0x01553fec)
+berries = byte((yoshi_player_pointer&0x0FFFFFFF)+0x1543)
+reverse_yoshi_player_pointer= dword_be(0x0154bf6c)
 
 music_house_items = byte(0x0154219f)
 
 timer = word_be(0x01547d42)
 score = dword_be(0x01547d48)
 
-powerup = byte(0x0154d427)
 
-mario_x = dword_be(0x0154d470)
-mario_y = dword_be(0x0154d474)
 
 on_ground = byte(0x0154d4ab)
 parabeetles = byte(0x015e67ff)
@@ -285,6 +295,21 @@ function get_level_data(level_img){
     return world*0x2a*4 + level*4 + level_data_start + 0x980*file_selected
 }
 
+//pointer stuff
+//only works for 1p
+//this pointer is always connect to the 1st yoshi is there is a yoshi
+yoshi_player_pointer=dword_be(0x01553fec)
+berries = byte((yoshi_player_pointer&0x0FFFFFFF)+0x1543)
+
+//this pointer is always a part of the last player data block, 
+//points to either the next player if there is 2+ players, a yoshi if there is 1 player and a yoshi is spawned,
+//or the unknown block contained in the yoshi_player_pointer. these reverse pointers are 4 bytes after where the linked nodes point to
+reverse_yoshi_player_pointer= dword_be(0x0154bf6c)
+
+powerup = byte(0x0154d427)
+
+mario_x = dword_be(0x0154d470)
+mario_y = dword_be(0x0154d474)
 
 // * * * * * * * * * * * * * * * STANDARD PROGRESSION * * * * * * * * * * * * * * * \\
 
@@ -317,7 +342,7 @@ for key in Boss_Achievements{
         description=Boss_Achievements[key][1],
         points=Boss_Achievements[key][2],
         type=Boss_Achievements[key][3],
-        trigger= level_image==key && level_status==0x05 && prev(level_status)!=level_status
+        trigger=  finished_level_with_boss(key)
     
     )
 }
@@ -328,7 +353,7 @@ for key in Level_Achievements{
         description=Level_Achievements[key][1],
         points=Level_Achievements[key][2],
         type=Level_Achievements[key][3],
-        trigger= level_image==key && level_status==0x02 && prev(level_status)==0x01
+        trigger= finished_level_with_flag(key)
     
     )
 }
@@ -396,7 +421,11 @@ for key in Star_Coins{
         sum_of(
             Star_Coins[key][1],
             Prev_Star_Coin_Logic
-        ) == length(Star_Coins[key][1])*3-1
+        ) <= length(Star_Coins[key][1])*3-1 &&         
+        sum_of(
+            Star_Coins[key][1],
+            Prev_Star_Coin_Logic
+        ) >= length(Star_Coins[key][1])*3-3
          
     )
 }
@@ -523,8 +552,7 @@ for i in Hard_Mode{
         title=i[0],
         description=i[1],
         points=i[2],
-        trigger=hard_mode==0x01 && level_image==i[3] && 
-                level_status==0x02 && prev(level_status)==0x01 &&
+        trigger=hard_mode==0x01 && finished_level_with_flag(i[3]) &&
                 !respawned_from_checkpoint()
         
     )
@@ -577,7 +605,7 @@ achievement(
 // Need: 1 Player Mode flag
 
 //Fill in this function with the required logic
-function one_player() => always_true()
+function one_player() => num_players==0x01
 
 achievement(
     title= "This House Could Use Some More Challenge",
@@ -641,7 +669,45 @@ achievement(
 
 //Damageless
 // A-Tower, B-Tower, C-Tower etc, W5 boss, Final bowser and maybe mid-W8 fight
-// Coding difficulty: easy
+// Coding difficulty: medium
+// Task: support for multiplayer (need access to P2-P4 powerup status)
+// Task 2: Titles
+// Task 3: respawn from checkpoint flag (view respawned_from_checkpoint())
+// Task 4: W5 boss logic. Its special because Yoshi
+
+dmgless = [
+    ["Leafpile Fortress Damageless", "Complete A-Fortress: Goldbuzz Fortress without taking damage and without respawning from a checkpoint", 5, 0x904],
+    ["Formidable Fortress Damageless", "Complete B-Fortress: Formidable Fortress without taking damage and without respawning from a checkpoint", 5, 0x909],
+    ["Clockwork Tower Damageless", "Complete C-Tower: Clockwork Tower without taking damage and without respawning from a checkpoint", 5, 0x918],
+    ["Toxic Fortress Damageless", "Complete D-Fortress: Toxic Fortress without taking damage and without respawning from a checkpoint", 5, 0x90e],
+    ["Bombassault Gorge Damageless", "Complete E-3: Bombassault Gorge without taking damage and without respawning from a checkpoint", 5, 0x911],
+]
+
+// Edit this function. Currently only checks P1
+function multiplayer_damageless(){
+    return never((prev(powerup)>=2 && powerup <= 1) || prev(powerup)==1 && powerup==0)
+}
+
+for i in dmgless{
+    achievement(
+        title=i[0],
+        description=i[1],
+        points=i[2],
+        trigger=once(in_overworld()) && !in_overworld() && finished_level_with_flag(i[3]) 
+                && !respawned_from_checkpoint() && multiplayer_damageless()
+    )
+}
+
+//W5-Boss damageless
+achievement(
+    title="A Dance of Fire and Ice",
+    description="Defeat the boss in 5-Tower or 5-Castle without getting hit off of Yoshi",
+    points=5,
+    trigger=(finished_level_with_boss(0x40e) || finished_level_with_boss(0x418)) //needs more
+)
+
+//Bowser damageless
+
 
 //Red Rings
 // 5-4 is for some reason the only one I have listed
@@ -649,7 +715,13 @@ achievement(
 
 //All Berries
 // A-2
-// Coding difficulty: easy
+//Task: Expand to multiplayer, if possible. Awful pointer to make it work.
+achievement(
+    title="A Well-Earned Feast",
+    description="In A-2: Appletree Woods, eat all 25 berries with one Yoshi",
+    points=10, 
+    trigger=measured(repeated(25, berries>prev(berries) )) && never(in_overworld() || level_image!=0x901 || yoshi_player_pointer!=reverse_yoshi_player_pointer)
+)
 
 //Speedrun
 // 2-9, 6-Tower boss, maybe something in W9 (Full world speedrun?)
@@ -678,5 +750,6 @@ rich_presence_display("Stage {0} | Lives {1} | 💀 {2} | {3}",
     rich_presence_value("death", tally(0, prev(byte(0x354E93)) > byte(0x354E93), always_false())),
     rich_presence_value("score", dword_be(0x1547D48), format="SCORE")
 )
+
 
 
