@@ -517,7 +517,8 @@ for world in exits{
         + when you have 99 the counter doesn't go up anymore
     Parabeetles spawn a 1-up
     In Credits flag
-    1 Player flag
+    combo counter
+    1 Player flag (found)
 */
 
 achievement(
@@ -609,8 +610,9 @@ function one_player() => num_players==0x01
 
 achievement(
     title= "This House Could Use Some More Challenge",
-    description="Complete any Challenge House with a Mini Mushroom while in 1 Player Mode",
+    description="Complete any Challenge House with a Mini Mushroom [1P only]",
     points=10,
+    type="missable",
     trigger=any_of(
         ch_houses, ch_helper
     ) && !in_overworld() && powerup == 0x03 && one_player()
@@ -645,35 +647,39 @@ for i in music_houses{
 // Collect x coins in y level
 // variable amount of points
 // 8-Train, 5-Tower, 2-5 (min-spins) {}
-// Coding difficulty: Medium/Hard {may rely on other address, like credits scene signifier}
+// 2-5 has 84 coins. 5 spins is the minimum amount, but 6 is probably better for this challenge
+//5-Tower: # coins: 240 is very challening
+//8-Train # coins: 100 seems like a good amount
+// Task 1: Find necessary propeller address (if can't find, resort to simply collecting all the coins)
+// Task 2: Find credits signifier
+// Task 3: Make the achievements...
 
-//Hammer Mario
-achievement(
-    title="Time to Kill People With a Hammers",
-    description="Collect a Hammer powerup",
-    points=1,
-    trigger = not_on_title_screen() && prev(powerup)!=0x07 && powerup==0x07
-)
 
 
 //Collect specific 1-ups
 // 4-4, 6-Castle, D-2
 // Coding difficulty: Hard (may have to rely on tracking specific 1-ups.)
+// Task: Find relevant addresses
 
 //99 lives
 // Coding difficulty: easy
+// Thinking about removing this one
+
 
 //Low score
 // C-4 (no checkpoint or propeller), E-3
-// Coding difficulty: easy
+// Coding difficulty: Medium. Multiplayer stuff is already figured out, just need to implement it in a slightly different way
+// Task: Low score values
+// Task 2: code cheevos
 
 //Damageless
 // A-Tower, B-Tower, C-Tower etc, W5 boss, Final bowser and maybe mid-W8 fight
 // Coding difficulty: medium
-// Task: support for multiplayer (need access to P2-P4 powerup status)
+// Task: support for multiplayer [Complete but needs testing]
 // Task 2: Titles
 // Task 3: respawn from checkpoint flag (view respawned_from_checkpoint())
 // Task 4: W5 boss logic. Its special because Yoshi
+// Task 5: Bowser
 
 dmgless = [
     ["Leafpile Fortress Damageless", "Complete A-Fortress: Goldbuzz Fortress without taking damage and without respawning from a checkpoint", 5, 0x904],
@@ -683,9 +689,24 @@ dmgless = [
     ["Bombassault Gorge Damageless", "Complete E-3: Bombassault Gorge without taking damage and without respawning from a checkpoint", 5, 0x911],
 ]
 
-// Edit this function. Currently only checks P1
+// Pain
 function multiplayer_damageless(){
-    return never((prev(powerup)>=2 && powerup <= 1) || prev(powerup)==1 && powerup==0)
+    pip=dword_be(0x0154bf68)
+    pip2=dword_be(pip+0x04)
+    item2=byte(pip2+0x14bf)
+    pip3=dword_be(pip2+0x04)
+    item3=byte(pip3+0x14bf)
+    pip4=dword_be(pip3+0x04)
+    item4=byte(pip4+0x14bf)
+    //index1
+    return never((prev(powerup)>=2 && powerup <= 1) || prev(powerup)==1 && powerup==0) &&
+    //index2
+    never(dword_be(pip2+0x0c)==0x000d000d && (prev(item2)>=2 && item2 <=1) || (prev(item2)==1 && item2==0)) &&
+    //index3
+    never(dword_be(pip2+0x0c)==0x000d000d && (prev(item3)>=2 && item3 <=1) || (prev(item3)==1 && item3==0)) &&
+    //index4
+    never(dword_be(pip2+0x0c)==0x000d000d && (prev(item4)>=2 && item4 <=1) || (prev(item4)==1 && item4==0)) &&
+    never((p1_lives<prev(p1_lives)) || (p2_lives<prev(p2_lives)) || (p3_lives<prev(p3_lives)) || (p4_lives<prev(p4_lives)))
 }
 
 for i in dmgless{
@@ -693,12 +714,13 @@ for i in dmgless{
         title=i[0],
         description=i[1],
         points=i[2],
-        trigger=once(in_overworld()) && !in_overworld() && finished_level_with_flag(i[3]) 
+        trigger=once(in_overworld()) && !in_overworld() && trigger_when(finished_level_with_flag(i[3])) 
                 && !respawned_from_checkpoint() && multiplayer_damageless()
     )
 }
 
 //W5-Boss damageless
+// Maybe a quick kill is better?
 achievement(
     title="A Dance of Fire and Ice",
     description="Defeat the boss in 5-Tower or 5-Castle without getting hit off of Yoshi",
@@ -712,10 +734,11 @@ achievement(
 //Red Rings
 // 5-4 is for some reason the only one I have listed
 // Coding difficulty: TBD
+// Thinking about removing this
 
 //All Berries
 // A-2
-//Task: Expand to multiplayer, if possible. Awful pointer to make it work.
+//Task: Expand to multiplayer, if possible. Awful pointer to make it work. many things can go wrong.
 achievement(
     title="A Well-Earned Feast",
     description="In A-2: Appletree Woods, eat all 25 berries with one Yoshi",
@@ -726,15 +749,19 @@ achievement(
 //Speedrun
 // 2-9, 6-Tower boss, maybe something in W9 (Full world speedrun?)
 // Coding difficulty: Medium (Hard for W9 speedrun)
+// Task: Everything. Haven't started on these
+
+
 
 //Other
+// Task: plenty of things needed
 // 2-A fly over the level (Medium Difficulty)
 // 1-up combo in E-1 (TBD)
 // 5-1 penguin slide (Hard)
 // 7-1 without blue switch (Easy)
 // 7-? min jumps (Hard)
 // 8-2 all star coins no propeller or checkpoint (Medium)
-// B-1 Mighty Meadow as Mini Mario [m] (Easy)
+// B-1 Mighty Meadow as Mini Mario (Easy)
 // Complete challenge house as Mini Mario [1p] [m] (Easy)
 // C-Tower super hidden room [Medium]
 // Spawning x lives in the parabeetle level (don't remember which one that is) [Hard]
