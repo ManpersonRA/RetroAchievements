@@ -321,8 +321,8 @@ mario_y = dword_be(0x0154d474)
 
 // format: key : [title, description, points, type_flag]
 Boss_Achievements = {
-    0x25: ["Iggy Is Die", "Defeat Iggy Koopa in 1-Airship: Derelict Airship", 5, ""],
-    0x125: ["What boss is this 2", "Defeat  in 2-Airship: Sandship", 5, ""],
+    0x25: ["Iggy's Beach Vacation", "Defeat Iggy Koopa in 1-Airship: Derelict Airship", 5, ""],
+    0x125: ["Roy's Playing in the Sand", "Defeat Roy Koopa in 2-Airship: Sandship", 5, ""],
     0x225: ["What boss is this 3", "Defeat  in 3-Airship: Capshroom Airship", 5, ""],
     0x325: ["What boss is this 4", "Defeat  in 4-Airship: Nutscrew Airship", 5, ""],
     0x425: ["What boss is this 5", "Defeat  in 5-Airship: Snowdrift Airship", 5, ""],
@@ -365,9 +365,9 @@ for key in Level_Achievements{
 // format: key: [[title, description, points], [level1, level2, ...]]
 // 15 total 5, 5, 5, 10, 10, 10, 10, 25, 25 [every star coin], 3, 3, 3, 3, 3
 Star_Coins = {
-    0x01: [["W-1 Star Coins", "Collect all Star Coins in Yoshi's Island", 5], 
+    0x01: [["Avid Collector", "Collect all Star Coins in Yoshi's Island", 5], 
             [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25]],
-    0x02: [["W-2 Star Coins", "Collect all Star Coins in Rubble Ruins and Soggy Sewers", 5], 
+    0x02: [["Treasures in the Sand", "Collect all Star Coins in Rubble Ruins and Soggy Sewers", 5], 
             [0x100, 0x101, 0x102, 0x103, 0x104, 0x105, 0x106, 0x107, 0x108, 0x109, 0x10e, 0x119, 0x125]],
     0x03: [["W-3 Star Coins", "Collect all Star Coins in Mushroom Peaks", 5], 
             [0x200, 0x201, 0x202, 0x203, 0x204, 0x205, 0x206, 0x20e, 0x218, 0x225]],
@@ -385,7 +385,7 @@ Star_Coins = {
             [0x800, 0x801, 0x802, 0x803, 0x804, 0x805, 0x806, 0x807, 0x808, 0x809]],
     0x0a: [["W-A Star Coins", "Collect all Star Coins in Goldwood Forest", 5], 
             [0x900, 0x901, 0x902, 0x903]],
-    0x0b: [["W-B Star Coins", "Collect all Star Coins in Mighty Meadow", 5], 
+    0x0b: [["Normally Sized Star Coins", "Collect all Star Coins in Mighty Meadow", 5], 
             [0x905, 0x906, 0x907, 0x908, 0x909]],
     0x0c: [["W-C Star Coins", "Collect all Star Coins in Sky City", 5], 
             [0x912, 0x915, 0x916, 0x917, 0x918]],
@@ -450,9 +450,9 @@ function Prev_Get_Secret_Exit(lvl_img){
 }
 
 exits = {
-    0x01: [["W1 Clear", "Get all the exits in Yoshi's Island", 5], 
+    0x01: [["Mario's Beach Vacation", "Get all the exits in Yoshi's Island", 5], 
     [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25], [0x05, 0x07]],
-    0x02: [["W-2 Clear", "Get all the exits in Rubble Ruins and Soggy Sewers", 5], 
+    0x02: [["Through Sewers and Ruins", "Get all the exits in Rubble Ruins and Soggy Sewers", 5], 
     [0x100, 0x101, 0x102, 0x103, 0x104, 0x105, 0x106, 0x107, 0x108, 0x109, 0x10e, 0x119, 0x125], [0x104, 0x108]],
     0x03: [["W-3 Clear", "Get all the exits in Mushroom Peaks", 5], 
     [0x200, 0x201, 0x202, 0x203, 0x204, 0x205, 0x206, 0x20e, 0x218, 0x225], [0x201]],
@@ -621,17 +621,17 @@ achievement(
 
 
 //Music Houses
-// Task: Better titles
+// Task: Doesn't work in multiplayer due to pointers
 
 // NOTE: These titles should be changed to match the tune that is being played
 music_houses = [
-    ["Desert Music House", "Collect all four items in Desert Music House", 5, 0x121],
-    ["Mushroom Music House", "Collect all four items in Mushroom Music House", 5, 0x221],
-    ["Village Music House", "Collect all four items in Village Music House", 5, 0x321],
-    ["Frosty Music House", "Collect all four items in Frosty Music House", 5, 0x421],
-    ["Goldwood Music House", "Collect all four items in Goldwood Music House", 5, 0x924],
-    ["Minimega Music House", "Collect all four items in Minimega Music House", 5, 0x922],
-    ["Crystal Music House", "Collect all four items in Crystal Music House", 5, 0x923],
+    ["Mario 3 Desert Theme", "Correctly play all four song excerpts in Desert Music House", 5, 0x121],
+    ["Found a Warp Whistle?", "Correctly play all four song excerpts in Mushroom Music House", 5, 0x221],
+    ["The Mario Theme of All Time", "Correctly play all four song excerpts in Village Music House", 5, 0x321],
+    ["Sherbet Land, Apparently", "Correctly play all four song excerpts in Frosty Music House", 5, 0x421],
+    ["Remembering Yoshi's Story", "Correctly play all four song excerpts in Goldwood Music House", 5, 0x924],
+    ["Star Power!", "Correctly play all four song excerpts in Minimega Music House", 5, 0x922],
+    ["Worldly Castle Theme", "Correctly play all four song excerpts in Crystal Music House", 5, 0x923],
 ]
 
 for i in music_houses{
@@ -639,6 +639,7 @@ for i in music_houses{
         title=i[0],
         description=i[1],
         points=i[2],
+        type="missable",
         trigger= !in_overworld() && level_image==i[3] && music_house_items==4 && prev(music_house_items==3)
     )
 }
