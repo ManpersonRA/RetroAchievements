@@ -30,7 +30,7 @@ level_images = {
     0x118: "2-Castle: Pyramid Castle",
     0x120: "Challenge House B",
     0x121: "Desert Music House",
-    0x125: "2-Airshpip: Sandship",
+    0x125: "2-Airship: Sandship",
     0x200: "3-1 Chomproller Heights",
     0x201: "3-3 Butterwood Crossing",
     0x202: "3-2 Grimymole Mine",
@@ -215,12 +215,17 @@ num_players=byte(0x003a3804)
 level_image=word_be(0x00315b9c)
 level_status=byte(0x00354ee7)
 
+function in_level(lvl_img) => level_image==lvl_img
+
+function got_flag() => level_status==0x02 && prev(level_status)==0x00
+function beat_boss() => level_status==0x05 && prev(level_status)!=level_status
+
 function finished_level_with_flag(lvl_img){
-    return level_image==lvl_img && level_status==0x02 && prev(level_status)==0x01
+    return in_level(lvl_img) && got_flag()
 }
 
 function finished_level_with_boss(lvl_img){
-    return level_image==lvl_img && level_status==0x05 && prev(level_status)!=level_status
+    return in_level(lvl_img) && beat_boss()
 }
 
 file_selected=byte(0x00c7f7c6)
@@ -260,7 +265,7 @@ class item_reserve{ // File 1
 }
 
 death_start = 0x00c80624 // File 1
-
+checkpoint = byte(0x00d2508b)
 
 hard_mode = byte(0x00e5740c)
 function in_hard_mode() => hard_mode==1
@@ -306,6 +311,7 @@ berries = byte((yoshi_player_pointer&0x0FFFFFFF)+0x1543)
 //or the unknown block contained in the yoshi_player_pointer. these reverse pointers are 4 bytes after where the linked nodes point to
 reverse_yoshi_player_pointer= dword_be(0x0154bf6c)
 
+on_yoshi = byte(0x0154cf6b)
 powerup = byte(0x0154d427)
 
 mario_x = dword_be(0x0154d470)
@@ -537,36 +543,32 @@ achievement(
 
 //Hard mode achievements
 // Task: 10 levels for hard mode achievements, put the level images in the below array
-// Task 2: Find address that shows a player did not respawn from a checkpoint, 
-    // edit respawned_from_checkpoint and move it up to code note section
-
 // NOTE: If a boss level is chosen, different logic will be needed since the end of level state is different
 
-function respawned_from_checkpoint() => always_false()
+function respawned_from_checkpoint() => prev(in_overworld())&&!in_overworld() && checkpoint != 0x04
 
 Hard_Mode = [
-    ["Example Hard Mode Achievement", "Complete level 0x01 in Hard Mode without respawning from a checkpoint", 10, 0x01]
+    ["Example Hard Mode Achievement", "Complete level 0x01 in Hard Mode without respawning from a checkpoint", 10, 0x01],
+    ["Koopa's Killer Castle", "Complete Bowser's Castle in Hard Mode without respawning from a checkpoint", 10, 0x718]
 ]
 
+//Coding is complete and tested.
 for i in Hard_Mode{
     achievement(
         title=i[0],
         description=i[1],
         points=i[2],
-        trigger=hard_mode==0x01 && finished_level_with_flag(i[3]) &&
-                !respawned_from_checkpoint()
+        trigger=hard_mode==0x01 && in_level(i[3]) && trigger_when(got_flag()) && !in_overworld() &&
+                disable_when(respawned_from_checkpoint(), until=in_overworld())
         
     )
 }
 
 
-//Debug mode
-// Just turn it on
-// Coding difficulty: Easy
+
 
 //Challenge Houses
 //Task: (Optional) Find addresses to make a better trigger spot for achievement 1
-//Task 2: Find an address for 1 player mode, fill in function one_player()
 
 ch_houses = [0x921, 0x720, 0x620, 0x520, 0x320, 0x220, 0x120, 0x20]
 
@@ -575,6 +577,7 @@ function ch_helper(lvl_img) => Get_Exit(lvl_img)==1 && Prev_Get_Exit(lvl_img)==0
 
 //Note: I really want this to trigger when you collect the items in the chest, but I am missing the code notes for it.
 // Right now it triggers when you go back to overworld which is lame
+// (Complete)
 achievement(
     title= "Collectathon",
     description="Complete any Challenge House by collecting all the stars",
@@ -602,10 +605,7 @@ achievement(
 )
 
 
-// Complete a challenge house as Mini Mario
-// Need: 1 Player Mode flag
-
-//Fill in this function with the required logic
+// Complte a challenge house as mini mario (Complete)
 function one_player() => num_players==0x01
 
 achievement(
@@ -620,10 +620,10 @@ achievement(
 
 
 
-//Music Houses
-// Task: Doesn't work in multiplayer due to pointers
-
-// NOTE: These titles should be changed to match the tune that is being played
+// Music Houses
+// Task: Decide if these are good achievements.
+// Warning: Doesn't work in multiplayer at all
+// Otherwise complete.
 music_houses = [
     ["Mario 3 Desert Theme", "Correctly play all four song excerpts in Desert Music House", 5, 0x121],
     ["Found a Warp Whistle?", "Correctly play all four song excerpts in Mushroom Music House", 5, 0x221],
@@ -631,7 +631,7 @@ music_houses = [
     ["Sherbet Land, Apparently", "Correctly play all four song excerpts in Frosty Music House", 5, 0x421],
     ["Remembering Yoshi's Story", "Correctly play all four song excerpts in Goldwood Music House", 5, 0x924],
     ["Star Power!", "Correctly play all four song excerpts in Minimega Music House", 5, 0x922],
-    ["Worldly Castle Theme", "Correctly play all four song excerpts in Crystal Music House", 5, 0x923],
+    ["Castle Theme of the Best Mario Game", "Correctly play all four song excerpts in Crystal Music House", 5, 0x923],
 ]
 
 for i in music_houses{
@@ -690,7 +690,7 @@ dmgless = [
     ["Bombassault Gorge Damageless", "Complete E-3: Bombassault Gorge without taking damage and without respawning from a checkpoint", 5, 0x911],
 ]
 
-// Pain
+// This is almost certainly incorrect. Just ignore it
 function multiplayer_damageless(){
     pip=dword_be(0x0154bf68)
     pip2=dword_be(pip+0x04)
@@ -710,27 +710,36 @@ function multiplayer_damageless(){
     never((p1_lives<prev(p1_lives)) || (p2_lives<prev(p2_lives)) || (p3_lives<prev(p3_lives)) || (p4_lives<prev(p4_lives)))
 }
 
+function damageless_1p(){
+    return never((prev(powerup)>=2 && powerup <= 1) || prev(powerup)==1 && powerup==0)
+}
 for i in dmgless{
     achievement(
         title=i[0],
         description=i[1],
         points=i[2],
         trigger=once(in_overworld()) && !in_overworld() && trigger_when(finished_level_with_flag(i[3])) 
-                && !respawned_from_checkpoint() && multiplayer_damageless()
+                && !respawned_from_checkpoint() && damageless_1p()
     )
 }
 
-//W5-Boss damageless
-// Maybe a quick kill is better?
+//W5-Boss without Yoshi
+// Task: Test
 achievement(
     title="A Dance of Fire and Ice",
-    description="Defeat the boss in 5-Tower or 5-Castle without getting hit off of Yoshi",
+    description="Defeat the boss in 5-Tower or 5-Castle without getting on the Yoshi",
     points=5,
-    trigger=(finished_level_with_boss(0x40e) || finished_level_with_boss(0x418)) //needs more
+    trigger=(finished_level_with_boss(0x40e) || finished_level_with_boss(0x418)) && once(in_overworld()) && never(on_yoshi>=0x01) //needs more
 )
 
 //Bowser damageless
-
+// Complete
+achievement(
+    title="Clown Car Dogfighting",
+    description="From the checkpoint, defeat Bowser in Bowser's Keep without taking damage",
+    points=25,
+    trigger=once((prev(in_overworld()) && !in_overworld() && checkpoint!=0x04) || (checkpoint!=0x04 && prev(checkpoint==0x04) && !in_overworld())) && damageless_1p() && !in_overworld() && in_level(0x717) && trigger_when(beat_boss())
+)
 
 //Red Rings
 // 5-4 is for some reason the only one I have listed
@@ -756,7 +765,7 @@ achievement(
 
 //Other
 // Task: plenty of things needed
-// 2-A fly over the level (Medium Difficulty)
+// 2-A fly over the level (Medium Difficulty) -- this needs a room image or some other clever solution
 // 1-up combo in E-1 (TBD)
 // 5-1 penguin slide (Hard)
 // 7-1 without blue switch (Easy)
