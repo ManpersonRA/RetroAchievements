@@ -96,6 +96,7 @@ level_images = {
     0x61e: "The Blue Switch Palace",
     0x620: "Challenge House F",
     0x625: "7-Airship: Spaceship Koopa",
+    0x628: "Ending Credits",
     0x700: "8-1 Batallion Frontier",
     0x701: "8-2 Jet Airship",
     0x702: "8-4 Molten Airship",
@@ -111,6 +112,7 @@ level_images = {
     0x717: "8-Castle: Bowser's Keep",
     0x718: "8-Castle-2: Bowser's Castle",
     0x720: "Challenge House G",
+    0x728: "Saving Peach Cutscene!",
     0x800: "9-1 Red Lava",
     0x801: "9-2 Brown Forest",
     0x802: "9-3 Orange Prairie",
@@ -374,7 +376,7 @@ Star_Coins = {
     0x01: [["Avid Collector", "Collect all Star Coins in Yoshi's Island", 5], 
             [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25]],
     0x02: [["Treasures in the Sand", "Collect all Star Coins in Rubble Ruins and Soggy Sewers", 5], 
-            [0x100, 0x101, 0x102, 0x103, 0x104, 0x105, 0x106, 0x107, 0x108, 0x109, 0x10e, 0x119, 0x125]],
+            [0x100, 0x101, 0x102, 0x103, 0x104, 0x105, 0x106, 0x107, 0x108, 0x109, 0x10e, 0x118, 0x125]],
     0x03: [["W-3 Star Coins", "Collect all Star Coins in Mushroom Peaks", 5], 
             [0x200, 0x201, 0x202, 0x203, 0x204, 0x205, 0x206, 0x20e, 0x218, 0x225]],
     0x04: [["W-4 Star Coins", "Collect all Star Coins in Sakura Village", 10], 
@@ -459,7 +461,7 @@ exits = {
     0x01: [["Mario's Beach Vacation", "Get all the exits in Yoshi's Island", 5], 
     [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0e, 0x18, 0x25], [0x05, 0x07]],
     0x02: [["Through Sewers and Ruins", "Get all the exits in Rubble Ruins and Soggy Sewers", 5], 
-    [0x100, 0x101, 0x102, 0x103, 0x104, 0x105, 0x106, 0x107, 0x108, 0x109, 0x10e, 0x119, 0x125], [0x104, 0x108]],
+    [0x100, 0x101, 0x102, 0x103, 0x104, 0x105, 0x106, 0x107, 0x108, 0x109, 0x10e, 0x118, 0x125], [0x104, 0x108]],
     0x03: [["W-3 Clear", "Get all the exits in Mushroom Peaks", 5], 
     [0x200, 0x201, 0x202, 0x203, 0x204, 0x205, 0x206, 0x20e, 0x218, 0x225], [0x201]],
     0x04: [["W-4 Clear", "Get all the exits in Sakura Village", 5], 
@@ -546,6 +548,7 @@ achievement(
 // NOTE: If a boss level is chosen, different logic will be needed since the end of level state is different
 
 function respawned_from_checkpoint() => prev(in_overworld())&&!in_overworld() && checkpoint != 0x04
+function not_respawned_from_checkpoint() => prev(in_overworld())&&!in_overworld() && checkpoint == 0x04
 
 Hard_Mode = [
     ["Example Hard Mode Achievement", "Complete level 0x01 in Hard Mode without respawning from a checkpoint", 10, 0x01],
@@ -655,6 +658,49 @@ for i in music_houses{
 // Task 2: Find credits signifier
 // Task 3: Make the achievements...
 
+credits_coins = dword_be(0x014fc794)
+credits_coins_l=dword_be(0x014fc798)
+achievement(
+    title="Newer Team's Final Prize",
+    description="Collect at least 500 coins as Mario during the credits sequence",
+    points=5,
+    trigger=!in_overworld() && level_image==0x628&& prev(credits_coins)<=499 && credits_coins>=500
+)
+
+coins_collected=dword_be(0x354fac)
+achievement(
+    title="Frozen Coins",
+    description="Collect 240 coins in 5-Tower",
+    points=10,
+    trigger=level_image==0x40e&&coins_collected>=240 && prev(coins_collected)<=239 && num_players==1
+)
+
+achievement(
+    title="Nothin' Like a Classic Train Heist",
+    description="Collect 100 coins in 8-Train",
+    points=5,
+    trigger=level_image==0x704 &&coins_collected>=100 && prev(coins_collected)<=99 && num_players==1
+)
+
+function spins() => always_false()
+
+achievement(
+    title="Minimal Propelling",
+    description="Collect all 84 coins in the bonus area of 2-5 while using the propeller a maximum of 6 times",
+    points=5,
+    trigger=never(level_image!=0x104)&& never(in_overworld()) && never(mario_y<0xc4600000 || mario_y > 0xc4cf0000 ||mario_x < 0x45800000) && 
+    trigger_when(
+    tally(
+        84, coins_collected!=prev(coins_collected),
+            coins_collected > prev(coins_collected)+1,
+            coins_collected > prev(coins_collected)+2,
+            coins_collected > prev(coins_collected)+3
+        )
+    )
+    && never(repeated(
+        7, spins()
+    ))
+)
 
 
 //Collect specific 1-ups
@@ -674,13 +720,7 @@ for i in music_houses{
 // Task 2: code cheevos
 
 //Damageless
-// A-Tower, B-Tower, C-Tower etc, W5 boss, Final bowser and maybe mid-W8 fight
-// Coding difficulty: medium
-// Task: support for multiplayer [Complete but needs testing]
-// Task 2: Titles
-// Task 3: respawn from checkpoint flag (view respawned_from_checkpoint())
-// Task 4: W5 boss logic. Its special because Yoshi
-// Task 5: Bowser
+// A-Tower, B-Tower, C-Tower etc, W5 boss, Bowser
 
 dmgless = [
     ["Leafpile Fortress Damageless", "Complete A-Fortress: Goldbuzz Fortress without taking damage and without respawning from a checkpoint", 5, 0x904],
@@ -718,8 +758,8 @@ for i in dmgless{
         title=i[0],
         description=i[1],
         points=i[2],
-        trigger=once(in_overworld()) && !in_overworld() && trigger_when(finished_level_with_flag(i[3])) 
-                && !respawned_from_checkpoint() && damageless_1p()
+        trigger=once(in_overworld()) && !in_overworld() && in_level(i[3]) && trigger_when(got_flag())
+                && never(respawned_from_checkpoint()) && damageless_1p()
     )
 }
 
@@ -757,11 +797,31 @@ achievement(
 )
 
 //Speedrun
-// 2-9, 6-Tower boss, maybe something in W9 (Full world speedrun?)
-// Coding difficulty: Medium (Hard for W9 speedrun)
-// Task: Everything. Haven't started on these
+// 2-9, 6-Tower boss, W9 full world speedrun
 
+timer = (low4(0x1622411)*100) + (low4(0x1622413)*10) + low4(0x1622415)
+achievement(
+    title="Faster Than a Speeding Buzzy Beetle",
+    description="Complete 2-9: Pillar Pass from the beginning with at least 465 seconds left on the timer",
+    points=5,
+    trigger = never(respawned_from_checkpoint()) && once(in_overworld()) && level_image==0x108 && trigger_when(got_flag()) && timer >= 465
+)
 
+achievement(
+    title="Wobbling Makes Me Go Faster",
+    description="Complete 3-4: Wobbleshroom Bluffs from the beginning with at least 475 seconds left on the timer",
+    points=5,
+    trigger = never(respawned_from_checkpoint()) && once(in_overworld()) && level_image==0x203 && trigger_when(got_flag()) && timer >= 475
+)
+
+raw_timer = dword_be(0xd25bf8)
+achievement(
+    title="Ghostbusting on the Clock",
+    description="Defeat the boss in 6-Tower or 6-Castle in less than 30 in-game seconds",
+    points=5,
+    trigger= (level_image== 0x050e || level_image==0x0518) && 
+        once(level_status==0x00) && prev(level_status==0x04) && trigger_when(level_status==0x05) && never(repeated(45*30, level_status==0x04 && raw_timer!=prev(raw_timer)))
+)
 
 //Other
 // Task: plenty of things needed
@@ -774,15 +834,72 @@ achievement(
 // B-1 Mighty Meadow as Mini Mario (Easy)
 // Complete challenge house as Mini Mario [1p] [m] (Easy)
 // C-Tower super hidden room [Medium]
+
+msg_box = byte(0xe57eeb)
+achievement(
+    title="Super Secret",
+    description="Hit the super secret message box in the super secret room of C-Tower: Clockwork Tower",
+    points=10,
+    trigger = level_image==0x918 && !in_overworld() && prev(msg_box)<msg_box
+)
+
 // Spawning x lives in the parabeetle level (don't remember which one that is) [Hard]
 
 
+// * * * * * * * * * * * * * * * LEADERBOARDS * * * * * * * * * * * * * * * \\
+function began_level_from_beginning(lvl_img) => level_image ==lvl_img && not_respawned_from_checkpoint() 
+function reset_title() => never(prev(title_screen==0x00) && title_screen==0x02)
+function modified_finished_level_with_flag(lvl_image) => once(once(began_level_from_beginning(lvl_image)) && finished_level_with_flag(lvl_image))
+sworld = range(0x800, 0x809)
+leaderboard(
+    title="World 9 Speedrun",
+    description="Complete all levels in World 9 as fast as possible. Return to Title Screen to retry",
+    start = once(prev(title_screen==0x02)&&title_screen==0x00) && prev(in_overworld()) 
+        && !in_overworld() && level_image >=0x800 && level_image <= 0x809 && never(repeated(60, !in_overworld() && level_image >=0x800 && level_image <= 0x809)),
+    cancel=title_screen==0x02,
+    submit= all_of(sworld, modified_finished_level_with_flag) && reset_title(),
+    value=always_true(),
+    format="FRAMES",
+    lower_is_better=true
+)
+
+leaderboard(
+    title="Credits Coins",
+    description="Highest number of coins collected as Mario",
+    start=level_image==0x628 && prev(!in_overworld())&&in_overworld() && num_players==1,
+    cancel=always_false(),
+    submit=always_true(),
+    value=credits_coins
+)
 
 
+leaderboard(
+    title="Credits Coins Luigi",
+    description="Playing as Mario, highest number of coins collected by Luigi",
+    start=level_image==0x628 && prev(!in_overworld())&&in_overworld() && num_players==1,
+    cancel=always_false(),
+    submit=always_true(),
+    value=credits_coins_l
+)
+achievement(
+    title="Speedrunning the Rainbow",
+    description="Complete every level in World 9 in under 16 minutes. You must start each level from the beginning, but can respawn at checkpoints that were collected while the challenge is active. Reset by expending the challenge timer or returning to the title screen",
+    points=25,
+    trigger = once(!in_overworld() && prev(in_overworld()) && level_image >=0x800 && level_image <=0x809) &&
+                never(repeated(
+                    60*60*16,
+                    once(!in_overworld() && prev(in_overworld()) && level_image >=0x800 && level_image <=0x809) && always_true()
+                )) &&
+                trigger_when(
+                    all_of(sworld, modified_finished_level_with_flag)
+                )
+                && never(title_screen==0x02)
+            
+)
 
 // * * * * * * * * * * * * * * * RICH PRESENCE * * * * * * * * * * * * * * * \\
 rich_presence_display("Stage {0} | Lives {1} | 💀 {2} | {3}",
-    rich_presence_value("stage", byte(0xC7FE65)),
+    rich_presence_lookup("stage", level_image, level_images, fallback="0-0: Title Screen!"),
     rich_presence_value("lives", word(0x354E93)),
     rich_presence_value("death", tally(0, prev(byte(0x354E93)) > byte(0x354E93), always_false())),
     rich_presence_value("score", dword_be(0x1547D48), format="SCORE")
